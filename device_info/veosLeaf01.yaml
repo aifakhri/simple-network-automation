@@ -1,0 +1,126 @@
+virtualBox:
+  vmType: arista_eos
+  vmManagement:
+    hostIp: "127.0.0.1"
+    hostPort: "2221"
+    guestIp: "10.0.2.15"
+    guestPort: "22"
+    username: "danbo"
+    password: "danbo"
+features:
+  bgp: True
+  bgpEvpn: True
+  vxlan: True
+interfaces:
+  management:
+    intName: management1
+    ipv4Addr: dhcp
+    ipv4Subnet: null
+  ethernets:
+    et1:
+      intName: ethernet1
+      intType: routed
+      ipv4Addr: "10.1.1.1"
+      ipv4Subnet: "31"
+      switchMode: null
+      vlanId: null
+    et2:
+      intName: ethernet2
+      intType: routed
+      ipv4Addr: "10.1.1.5"
+      ipv4Subnet: "31"
+      switchMode: null
+      vlanId: null
+    et3:
+      intName: ethernet3
+      intType: switchport
+      ipv4Addr: null
+      ipv4Subnet: null
+      switchMode: trunk
+      vlanId: all
+  loopbacks:
+    lo0:
+      intName: loopback0
+      ipv4Addr: "10.10.110.1"
+      ipv4Subnet: "32"
+vlans:
+  - vlanId: "100"
+    serviceType: "vxlan bridge"
+    vrf: False
+    svi: 
+      intName: null
+      ipv4Addr: null
+      ipv4Subnet: null
+      macAddr: null
+      anycastGw: null
+  - vlanId: "220"
+    serviceType: "vxlan irb"
+    vrf: True
+    svi:
+      intName: vlan 220
+      ipv4Addr: null
+      ipv4Subnet: null
+      anycastGw: "10.22.0.254"
+vxlans:
+  interface:
+    intName: Vxlan1
+    vtepInt: loopback0
+    vtepIp: "10.10.110.1"
+    remoteVtep: "10.10.110.2"
+    controlPlane: EVPN
+  vnis:
+    - vniId: "1100"
+      mappedVlan: "100"
+      serviceType: bridged
+    - vniId: "1200"
+      mappedVlan: "220"
+      serviceType: irb
+routing:
+  bgp:
+    localAs: "65101"
+    routerId: "10.10.110.1"
+    neighbors:
+      - address: "10.1.1.0"
+        remoteAs: "65001"
+        type: "ebgp"
+      - address: "10.1.1.4"
+        remoteAs: "65002"
+        type: "ebgp"
+      - address: "10.10.110.2"
+        remoteAs: "65101"
+        type: "evpn"
+    vlans:
+      - vlanId: "100"
+        rd: "10.21.0.0:65101"
+        rt: "10.21.0.0:1100"
+      - vlanId: "200"
+        rd: "10.22.0.0:65101"
+        rt: "10.22.0.0:1200"
+vrf:
+  management:
+    vrfName: management
+  customers:
+    CUSTOMER02:
+      vrfName: CUSTOMER02
+customers:
+  customer01:
+    vrf: false
+    vlan: "100"
+    vni: "1100"
+    allocatedNetwork: "10.21.0.0"
+    allocatedSubnet: "24"
+    allocatedGw: false
+  customer02:
+    vrf: CUSTOMER02
+    vlan: "220"
+    vni: "1200"
+    allocatedNetwork: "10.22.0.0"
+    allocatedSubnet: "24"
+    allocatedGw: "10.22.0.254"
+  customer03:
+    vrf: CUSTOMER03
+    vlan: "300"
+    vni: "1300"
+    allocatedNetwork: "10.23.0.0"
+    allocatedSubnet: "24"
+    allocatedGw: "10.23.0.254"
